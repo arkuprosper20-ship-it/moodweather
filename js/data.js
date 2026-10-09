@@ -136,7 +136,17 @@ export async function joinSchool(joinCode, grade) {
     const schoolsRef = collection(db, 'schools');
     const q = query(schoolsRef, where('joinCode', '==', joinCode));
     const snap = await getDocs(q);
-    if (snap.empty) throw new Error('Invalid join code');
+    if (snap.empty) {
+      // DEMO2026 is the reserved demo code: when Firebase is live
+      // but no school uses it, fall back to the seeded demo school
+      // so the demo works out of the box. Any other code is a
+      // genuine "not found".
+      if (joinCode === 'DEMO2026') {
+        useDemoFallback();
+        return joinSchool(joinCode, grade);
+      }
+      throw new Error('Invalid join code');
+    }
     const schoolDoc = snap.docs[0];
     const school = schoolDoc.data();
     if (!school.enrolled[grade]) throw new Error('Grade not available for this school');

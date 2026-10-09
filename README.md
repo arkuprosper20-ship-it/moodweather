@@ -17,7 +17,7 @@ python -m http.server 8000        # or: npx serve
 Then:
 
 1. Open `http://localhost:8000` in a browser.
-2. Join code: **DEMO2026**, any grade 7–12.
+2. Join code: **DEMO2026**, any grade 7–12. This code is reserved for the demo: it always loads the seeded demo school, even when a live Firebase project is connected.
 3. The app runs in **demo mode**: data is stored in `localStorage` and seeded with one school week of realistic counters (re-seeded each day). A "Demo mode" banner appears on every screen.
 4. Staff dashboard: open `http://localhost:8000/staff.html`. In demo mode, sign in with **teacher@riverside.edu** or **counselor@riverside.edu** (any password).
 
