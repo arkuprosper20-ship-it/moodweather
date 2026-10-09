@@ -1,0 +1,175 @@
+// MoodWeather Firestore Security Rules
+// No individual check-in records are ever stored — only group counters.
+//
+// Note: schoolId values must not contain underscores, because the
+// summaries and handled document IDs embed the schoolId as the
+// first underscore-separated segment.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function staffDoc(uid) {
+      return get(/databases/$(database)/documents/staff/$(uid));
+    }
+
+    // True if the signed-in user has a staff document.
+    function isStaff(uid) {
+      return isSignedIn()
+        && staffDoc(uid).data.keys().hasAll(['schoolId', 'role']);
+    }
+
+    function staffSchoolId(uid) {
+      return staffDoc(uid).data.schoolId;
+    }
+
+    // Extract the schoolId from a document ID of the form
+    // {schoolId}_{grade}_{suffix}. schoolId has no underscores.
+    function schoolIdFromId(docId) {
+      return docId.split('_')[0];
+    }
+
+    // ---------- schools/{schoolId} ----------
+    // Anonymous users may read school documents to resolve a join code
+    // (name, joinCode, enrolled are public aggregate info, not student
+    // data). School documents are managed via the Firebase console only.
+    // Staff may also read their own school's document.
+
+    match /schools/{schoolId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ---------- summaries/{schoolId_grade_YYYY-MM-DD} ----------
+    // Anonymous check-ins only increment group counters.
+    // Nobody may delete a summary.
+
+    match /summaries/{summaryId} {
+
+      // Increment: total +1, exactly one mood +1, each tag 0 or 1,
+      // and nothing else changes.
+      allow update: if request.resource.data.total == resource.data.total + 1
+        && moodDelta('sunny') + moodDelta('partly') + moodDelta('cloudy') + moodDelta('stormy') == 1
+        && validMoodDeltas()
+        && validTagDeltas()
+        && request.resource.data.keys().hasOnly(['total', 'moods', 'tags'])
+        && request.resource.data.moods.keys().hasOnly(['sunny', 'partly', 'cloudy', 'stormy'])
+        && request.resource.data.tags.keys().hasOnly(['exams', 'friends', 'home', 'sleep', 'workload', 'other']);
+
+      // Create: either all zeros (create-then-increment) or the first
+      // check-in (total 1, exactly one mood 1, each tag 0 or 1).
+      allow create: if request.resource.data.moods.keys().hasOnly(['sunny', 'partly', 'cloudy', 'stormy'])
+        && request.resource.data.tags.keys().hasOnly(['exams', 'friends', 'home', 'sleep', 'workload', 'other'])
+        && (
+          (request.resource.data.total == 0
+            && request.resource.data.moods.sunny == 0
+            && request.resource.data.moods.partly == 0
+            && request.resource.data.moods.cloudy == 0
+            && request.resource.data.moods.stormy == 0
+            && request.resource.data.tags.exams == 0
+            && request.resource.data.tags.friends == 0
+            && request.resource.data.tags.home == 0
+            && request.resource.data.tags.sleep == 0
+            && request.resource.data.tags.workload == 0
+            && request.resource.data.tags.other == 0)
+          ||
+          (request.resource.data.total == 1
+            && request.resource.data.moods.sunny + request.resource.data.moods.partly
+               + request.resource.data.moods.cloudy + request.resource.data.moods.stormy == 1
+            && createTagOk())
+        );
+
+      // Staff may read their own school's summaries.
+      allow read: if isStaff(request.auth.uid)
+        && staffSchoolId(request.auth.uid) == schoolIdFromId(summaryId);
+
+      // Nobody can delete summaries.
+      allow delete: if false;
+    }
+
+    function moodDelta(m) {
+      return request.resource.data.moods[m] - resource.data.moods[m];
+    }
+
+    function validMoodDeltas() {
+      return (moodDelta('sunny') == 0 || moodDelta('sunny') == 1)
+        && (moodDelta('partly') == 0 || moodDelta('partly') == 1)
+        && (moodDelta('cloudy') == 0 || moodDelta('cloudy') == 1)
+        && (moodDelta('stormy') == 0 || moodDelta('stormy') == 1);
+    }
+
+    function tagDelta(t) {
+      return request.resource.data.tags[t] - resource.data.tags[t];
+    }
+
+    function validTagDeltas() {
+      return (tagDelta('exams') == 0 || tagDelta('exams') == 1)
+        && (tagDelta('friends') == 0 || tagDelta('friends') == 1)
+        && (tagDelta('home') == 0 || tagDelta('home') == 1)
+        && (tagDelta('sleep') == 0 || tagDelta('sleep') == 1)
+        && (tagDelta('workload') == 0 || tagDelta('workload') == 1)
+        && (tagDelta('other') == 0 || tagDelta('other') == 1);
+    }
+
+    function createTagOk() {
+      return (request.resource.data.tags.exams == 0 || request.resource.data.tags.exams == 1)
+        && (request.resource.data.tags.friends == 0 || request.resource.data.tags.friends == 1)
+        && (request.resource.data.tags.home == 0 || request.resource.data.tags.home == 1)
+        && (request.resource.data.tags.sleep == 0 || request.resource.data.tags.sleep == 1)
+        && (request.resource.data.tags.workload == 0 || request.resource.data.tags.workload == 1)
+        && (request.resource.data.tags.other == 0 || request.resource.data.tags.other == 1);
+    }
+
+    // ---------- limits/{sha256(token+date)} ----------
+    // Create-only: anyone may create one limit document per device per
+    // day, but nobody may ever read, list, update, or delete them.
+
+    match /limits/{limitId} {
+      allow create: if true;
+      allow read: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ---------- staff/{uid} ----------
+    // Staff documents are created by admins via the console.
+    // A signed-in user may read their own staff document to verify authorization.
+
+    match /staff/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ---------- handled/{schoolId_grade_alertKey} ----------
+    // Staff may create or update handled records for their own school.
+    // Nobody may delete handled records.
+
+    match /handled/{handledId} {
+      allow read: if isStaff(request.auth.uid)
+        && staffSchoolId(request.auth.uid) == schoolIdFromId(handledId);
+
+      allow create: if isStaff(request.auth.uid)
+        && staffSchoolId(request.auth.uid) == schoolIdFromId(handledId)
+        && request.resource.data.keys().hasAll(['schoolId', 'grade', 'alertKey', 'handledBy', 'handledAt'])
+        && request.resource.data.handledBy == request.auth.uid;
+
+      allow update: if isStaff(request.auth.uid)
+        && staffSchoolId(request.auth.uid) == schoolIdFromId(handledId)
+        && request.resource.data.handledBy == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    // ---------- Deny everything else by default ----------
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

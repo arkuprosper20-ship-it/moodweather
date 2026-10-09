@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MoodWeather for Staff — Staff Dashboard</title>
+<meta name="description" content="Staff dashboard for MoodWeather: anonymous school wellbeing patterns. Group data only, never individual students." />
+<meta name="theme-color" content="#eef4fe" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='32' fill='%23FBBF24'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Sign-in screen -->
+<div class="app" id="signin-app">
+  <header class="topbar">
+    <span class="brand">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <rect x="2" y="2" width="44" height="44" rx="14" fill="#4F7DF9"/>
+        <circle cx="19" cy="19" r="8" fill="#FCD34D"/>
+        <circle cx="33" cy="30" r="7" fill="#ffffff"/>
+        <rect x="23" y="25" width="19" height="9" rx="4.5" fill="#ffffff"/>
+      </svg>
+      <span>MoodWeather <span class="brand-tag">for Staff</span></span>
+    </span>
+  </header>
+
+  <main id="signin-main">
+    <section class="screen active" id="screen-signin" aria-labelledby="signin-title">
+      <div class="card signin-card">
+        <h2 id="signin-title" tabindex="-1">Staff sign-in</h2>
+        <p class="screen-sub">Sign in with your school email to view anonymous group patterns.</p>
+
+        <form id="signinForm" novalidate>
+          <div class="stack">
+            <div class="field">
+              <label for="signinEmail">School email</label>
+              <input id="signinEmail" type="email" autocomplete="username" required placeholder="you@yourschool.edu" />
+            </div>
+            <div class="field">
+              <label for="signinPassword">Password</label>
+              <input id="signinPassword" type="password" autocomplete="current-password" required />
+            </div>
+            <p class="form-error" id="signinError" hidden></p>
+            <button type="submit" class="btn btn-primary" id="signinSubmit">Sign in</button>
+          </div>
+        </form>
+
+        <p class="status-note" id="demoHint" hidden>
+          Demo mode &mdash; sign in with <strong>teacher@riverside.edu</strong> or <strong>counselor@riverside.edu</strong> (any password).
+        </p>
+
+        <p class="privacy-note" style="margin-top:1rem;">
+          Only staff listed in the school's staff directory can access this dashboard.
+        </p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Dashboard -->
+<div class="shell" id="dashboard" hidden>
+
+  <aside class="sidebar">
+    <a class="brand" href="#overview">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <rect x="2" y="2" width="44" height="44" rx="14" fill="#4F7DF9"/>
+        <circle cx="19" cy="19" r="8" fill="#FCD34D"/>
+        <circle cx="33" cy="30" r="7" fill="#ffffff"/>
+        <rect x="23" y="25" width="19" height="9" rx="4.5" fill="#ffffff"/>
+      </svg>
+      <span class="brand-text">
+        <strong>MoodWeather</strong>
+        <span class="brand-tag">for Staff</span>
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="Dashboard sections">
+      <button type="button" class="nav-item" data-screen="overview" aria-current="page">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <rect x="6" y="6" width="15" height="15" rx="4"/>
+          <rect x="27" y="6" width="15" height="15" rx="4"/>
+          <rect x="6" y="27" width="15" height="15" rx="4"/>
+          <rect x="27" y="27" width="15" height="15" rx="4"/>
+        </svg>
+        <span>School overview</span>
+      </button>
+      <button type="button" class="nav-item" data-screen="grade">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <rect x="9" y="26" width="8" height="14" rx="2"/>
+          <rect x="20" y="18" width="8" height="22" rx="2"/>
+          <rect x="31" y="10" width="8" height="30" rx="2"/>
+        </svg>
+        <span>Grade detail</span>
+      </button>
+      <button type="button" class="nav-item" data-screen="alerts">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M24 8l19 33H5z"/>
+          <line x1="24" y1="20" x2="24" y2="29"/>
+          <circle cx="24" cy="35" r="1.6" fill="currentColor"/>
+        </svg>
+        <span>Alerts</span>
+        <span class="nav-badge" id="alertBadge">0</span>
+      </button>
+      <button type="button" class="nav-item" data-screen="guidance">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="24" cy="24" r="17"/>
+          <line x1="24" y1="22" x2="24" y2="33"/>
+          <circle cx="24" cy="16" r="1.8" fill="currentColor"/>
+        </svg>
+        <span>How to use this data</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p class="school-name" id="sidebarSchool">School</p>
+      <button type="button" class="student-link" id="signOutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="topbar-titles">
+        <h1 class="page-title" id="pageTitle" tabindex="-1">School overview</h1>
+        <p class="page-sub" id="pageSub">Group patterns for the latest complete week — never individual students.</p>
+      </div>
+      <div class="topbar-meta">
+        <span class="chip">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <rect x="7" y="10" width="34" height="32" rx="6"/>
+            <line x1="7" y1="20" x2="41" y2="20"/>
+            <line x1="16" y1="5" x2="16" y2="12"/>
+            <line x1="32" y1="5" x2="32" y2="12"/>
+          </svg>
+          <span id="weekChip">This week</span>
+        </span>
+        <span class="chip chip-demo" id="demoChip" hidden>Demo mode</span>
+      </div>
+    </header>
+
+    <main id="staff-main">
+
+      <!-- 1. School overview -->
+      <section class="screen active" id="screen-overview">
+        <div class="stat-grid" id="statGrid"></div>
+
+        <div class="section-head">
+          <h2>Mood weather map</h2>
+          <p>Most common mood, participation, and change vs last week for each grade.</p>
+        </div>
+        <div class="map-grid" id="mapGrid"></div>
+      </section>
+
+      <!-- 2. Grade detail -->
+      <section class="screen" id="screen-grade">
+        <div class="grade-pills" id="gradePills" role="group" aria-label="Choose a grade"></div>
+        <div id="gradeBody"></div>
+      </section>
+
+      <!-- 3. Alerts -->
+      <section class="screen" id="screen-alerts">
+        <div class="notice">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <circle cx="24" cy="24" r="17"/>
+            <line x1="24" y1="22" x2="24" y2="33"/>
+            <circle cx="24" cy="16" r="1.8" fill="currentColor"/>
+          </svg>
+          <div>
+            <p><strong>Alerts describe patterns across groups.</strong> They never point to individual students.</p>
+            <p class="notice-sub" id="alertsNoticeSub"></p>
+          </div>
+        </div>
+        <div class="alert-list" id="alertList"></div>
+      </section>
+
+      <!-- 4. How to use this data -->
+      <section class="screen" id="screen-guidance">
+        <div class="guidance-grid">
+
+          <article class="card guidance-card">
+            <span class="guidance-icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <rect x="9" y="26" width="8" height="14" rx="2"/>
+                <rect x="20" y="18" width="8" height="22" rx="2"/>
+                <rect x="31" y="10" width="8" height="30" rx="2"/>
+              </svg>
+            </span>
+            <h3>Patterns, not diagnoses</h3>
+            <p>MoodWeather shows trends across groups over time. It never diagnoses a condition or labels a student.</p>
+          </article>
+
+          <article class="card guidance-card">
+            <span class="guidance-icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <circle cx="24" cy="24" r="17"/>
+                <line x1="13" y1="35" x2="35" y2="13"/>
+              </svg>
+            </span>
+            <h3>Never identify individuals</h3>
+            <p>Don't try to work out who is behind a check-in. Groups with fewer than 5 responses are hidden for exactly this reason.</p>
+          </article>
+
+          <article class="card guidance-card">
+            <span class="guidance-icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M24 41s-15-9-15-20a8.5 8.5 0 0 1 15-5 8.5 8.5 0 0 1 15 5c0 11-15 20-15 20z"/>
+              </svg>
+            </span>
+            <h3>Refer concerns to the counselor</h3>
+            <p>If a pattern worries you, flag it to the school counselor. They're trained to follow up safely and privately.</p>
+          </article>
+
+          <article class="card guidance-card">
+            <span class="guidance-icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <rect x="6" y="8" width="36" height="26" rx="9"/>
+                <path d="M18 34l-4 9 10-9"/>
+              </svg>
+            </span>
+            <h3>Start conversations, not labels</h3>
+            <p>Use the data to ask &ldquo;how are we doing as a grade?&rdquo; — never to single out a student or a class.</p>
+          </article>
+
+        </div>
+
+        <div class="card closing-note">
+          <h3>What students see</h3>
+          <p>A private daily check-in: anonymous, no names, no accounts, one check-in per day.</p>
+          <p class="muted">What you see: group patterns only. No student names or individual responses are stored or shown anywhere in MoodWeather.</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<noscript>
+  <p class="noscript-note">MoodWeather needs JavaScript enabled to run.</p>
+</noscript>
+
+<div class="boot-error" id="bootError" hidden>
+  <p><strong>MoodWeather needs a web server.</strong></p>
+  <p>ES modules cannot load from <code>file://</code>. Serve this folder over HTTP &mdash; for example <code>python -m http.server</code> or <code>npx serve</code> &mdash; or use VS Code's Live Server extension, then open the page.</p>
+</div>
+
+<script>
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      if (!window.__moodweatherBooted) {
+        var el = document.getElementById('bootError');
+        if (el) el.hidden = false;
+      }
+    }, 2000);
+  });
+</script>
+
+<script type="module" src="js/staff.js"></script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>MoodWeather — How's your sky today?</title>
+<meta name="description" content="MoodWeather: an anonymous daily mood check-in for students. No name, no account." />
+<meta name="theme-color" content="#e9e4fb" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='32' fill='%23FBBF24'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <a class="brand" href="#welcome" id="brandLink">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <rect x="2" y="2" width="44" height="44" rx="14" fill="#4F7DF9"/>
+        <circle cx="19" cy="19" r="8" fill="#FCD34D"/>
+        <circle cx="33" cy="30" r="7" fill="#ffffff"/>
+        <rect x="23" y="25" width="19" height="9" rx="4.5" fill="#ffffff"/>
+      </svg>
+      <span>MoodWeather</span>
+    </a>
+    <button type="button" class="text-toggle" id="textToggle" aria-pressed="false">
+      Aa<span class="visually-hidden"> toggle large text</span>
+    </button>
+  </header>
+
+  <main id="main">
+
+    <!-- 0. Join -->
+    <section class="screen" id="screen-join" aria-labelledby="join-title">
+      <div class="stack">
+        <h1 class="screen-title" id="join-title" tabindex="-1">Join your school</h1>
+        <p class="screen-sub">Enter the join code your school gave you and pick your grade. That's all we ask.</p>
+
+        <form id="joinForm" novalidate>
+          <div class="stack">
+            <div class="field">
+              <label for="joinCode">School join code</label>
+              <input id="joinCode" name="joinCode" type="text" inputmode="text"
+                     autocomplete="off" autocapitalize="characters" spellcheck="false"
+                     placeholder="e.g. DEMO2026" required />
+              <p class="field-hint">Ask a teacher or counselor for your school's code.</p>
+            </div>
+
+            <div class="field">
+              <label for="gradeSelect">Your grade</label>
+              <select id="gradeSelect" name="grade" required>
+                <option value="" selected disabled>Choose your grade</option>
+                <option value="7">Grade 7</option>
+                <option value="8">Grade 8</option>
+                <option value="9">Grade 9</option>
+                <option value="10">Grade 10</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+              </select>
+            </div>
+
+            <p class="form-error" id="joinError" hidden></p>
+
+            <button type="submit" class="btn btn-primary" id="joinSubmit">Continue</button>
+          </div>
+        </form>
+
+        <p class="center">
+          <button type="button" class="link-quiet" id="joinPrivacyLink">How your privacy is protected</button>
+        </p>
+      </div>
+    </section>
+
+    <!-- 1. Welcome -->
+    <section class="screen" id="screen-welcome" aria-labelledby="welcome-title">
+      <svg class="hero" viewBox="0 0 360 170" aria-hidden="true" focusable="false">
+        <circle cx="300" cy="38" r="36" fill="#FDE68A" opacity="0.45"/>
+        <circle cx="300" cy="38" r="26" fill="#FBBF24"/>
+        <circle cx="300" cy="38" r="16" fill="#FDE68A"/>
+        <g class="hero-cloud" fill="#ffffff">
+          <circle cx="70" cy="52" r="16"/>
+          <circle cx="92" cy="46" r="21"/>
+          <circle cx="114" cy="54" r="15"/>
+          <rect x="58" y="52" width="66" height="19" rx="9.5"/>
+        </g>
+        <g class="hero-cloud hero-cloud-2" fill="#ffffff" opacity="0.8">
+          <circle cx="192" cy="92" r="11"/>
+          <circle cx="208" cy="87" r="14"/>
+          <circle cx="224" cy="93" r="10"/>
+          <rect x="184" y="90" width="44" height="13" rx="6.5"/>
+        </g>
+        <g stroke="#94A3B8" stroke-width="2.5" fill="none" stroke-linecap="round">
+          <path d="M150 42 q5 -6 10 0 q5 -6 10 0"/>
+          <path d="M178 58 q4 -5 8 0 q4 -5 8 0"/>
+        </g>
+        <path d="M0 170 Q80 118 170 150 T360 132 V170 Z" fill="#DDD6FE"/>
+        <path d="M0 170 Q110 138 220 158 T360 148 V170 Z" fill="#C7D2FE" opacity="0.7"/>
+      </svg>
+
+      <div class="stack">
+        <h1 class="screen-title" id="welcome-title" tabindex="-1">How's your sky today?</h1>
+        <p class="screen-sub">One quick, private check-in to help your school see how students are really doing.</p>
+        <p class="note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">
+            <rect x="5" y="10" width="14" height="10" rx="3"/>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+          </svg>
+          Anonymous. No name. No account.
+        </p>
+        <p class="daily-note" id="dailyNote" hidden>You've checked in today. See you tomorrow!</p>
+        <button type="button" class="btn btn-primary push-bottom" id="startBtn">Start</button>
+        <p class="center">
+          <button type="button" class="link-quiet" id="privacyLink">How your privacy is protected</button>
+        </p>
+      </div>
+    </section>
+
+    <!-- 2. Mood check-in -->
+    <section class="screen" id="screen-mood" aria-labelledby="mood-title">
+      <div class="stack">
+        <h1 class="screen-title" id="mood-title" tabindex="-1">Pick your weather</h1>
+        <p class="screen-sub">How does your sky feel right now? One tap is all it takes.</p>
+
+        <div class="mood-grid" role="radiogroup" aria-label="How does your sky feel right now?">
+
+          <button type="button" class="mood-card mood-sunny" role="radio" aria-checked="false" data-mood="sunny">
+            <span class="mood-icon">
+              <svg viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+                <g stroke="#F59E0B" stroke-width="6" stroke-linecap="round">
+                  <line x1="48" y1="6" x2="48" y2="18"/>
+                  <line x1="48" y1="78" x2="48" y2="90"/>
+                  <line x1="6" y1="48" x2="18" y2="48"/>
+                  <line x1="78" y1="48" x2="90" y2="48"/>
+                  <line x1="18" y1="18" x2="27" y2="27"/>
+                  <line x1="69" y1="69" x2="78" y2="78"/>
+                  <line x1="78" y1="18" x2="69" y2="27"/>
+                  <line x1="27" y1="69" x2="18" y2="78"/>
+                </g>
+                <circle cx="48" cy="48" r="20" fill="#FBBF24"/>
+                <circle cx="48" cy="48" r="12" fill="#FDE68A"/>
+              </svg>
+            </span>
+            <span class="mood-name">Sunny</span>
+            <span class="mood-hint">(calm)</span>
+            <span class="mood-check" aria-hidden="true">&#10003;</span>
+          </button>
+
+          <button type="button" class="mood-card mood-partly" role="radio" aria-checked="false" data-mood="partly">
+            <span class="mood-icon">
+              <svg viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+                <g stroke="#F59E0B" stroke-width="5" stroke-linecap="round">
+                  <line x1="20" y1="6" x2="20" y2="15"/>
+                  <line x1="8" y1="18" x2="15" y2="25"/>
+                  <line x1="32" y1="18" x2="25" y2="25"/>
+                  <line x1="6" y1="34" x2="15" y2="34"/>
+                </g>
+                <circle cx="20" cy="34" r="13" fill="#FBBF24"/>
+                <g fill="#93C5FD">
+                  <circle cx="52" cy="52" r="14"/>
+                  <circle cx="70" cy="46" r="18"/>
+                  <circle cx="84" cy="55" r="12"/>
+                  <rect x="42" y="54" width="48" height="16" rx="8"/>
+                </g>
+              </svg>
+            </span>
+            <span class="mood-name">Partly cloudy</span>
+            <span class="mood-hint">(okay)</span>
+            <span class="mood-check" aria-hidden="true">&#10003;</span>
+          </button>
+
+          <button type="button" class="mood-card mood-cloudy" role="radio" aria-checked="false" data-mood="cloudy">
+            <span class="mood-icon">
+              <svg viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+                <g fill="#8698AD">
+                  <circle cx="34" cy="46" r="14"/>
+                  <circle cx="52" cy="40" r="19"/>
+                  <circle cx="70" cy="48" r="14"/>
+                  <rect x="22" y="48" width="58" height="19" rx="9.5"/>
+                </g>
+              </svg>
+            </span>
+            <span class="mood-name">Cloudy</span>
+            <span class="mood-hint">(stressed)</span>
+            <span class="mood-check" aria-hidden="true">&#10003;</span>
+          </button>
+
+          <button type="button" class="mood-card mood-stormy" role="radio" aria-checked="false" data-mood="stormy">
+            <span class="mood-icon">
+              <svg viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+                <g fill="#64748B">
+                  <circle cx="34" cy="40" r="14"/>
+                  <circle cx="52" cy="34" r="19"/>
+                  <circle cx="70" cy="42" r="14"/>
+                  <rect x="22" y="42" width="58" height="19" rx="9.5"/>
+                </g>
+                <path d="M46 58 L34 80 h10 l-4 14 18-22 h-10 l6 -14 Z" fill="#F59E0B"/>
+              </svg>
+            </span>
+            <span class="mood-name">Stormy</span>
+            <span class="mood-hint">(overwhelmed)</span>
+            <span class="mood-check" aria-hidden="true">&#10003;</span>
+          </button>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Optional tags -->
+    <section class="screen" id="screen-tags" aria-labelledby="tags-title">
+      <div class="stack">
+        <h1 class="screen-title" id="tags-title" tabindex="-1">What's behind it?</h1>
+        <p class="screen-sub">Optional. Pick anything that fits &mdash; or skip it entirely.</p>
+
+        <div class="chips" role="group" aria-label="Optional tags">
+          <button type="button" class="chip" aria-pressed="false" data-tag="exams">Exams</button>
+          <button type="button" class="chip" aria-pressed="false" data-tag="friends">Friends</button>
+          <button type="button" class="chip" aria-pressed="false" data-tag="home">Home</button>
+          <button type="button" class="chip" aria-pressed="false" data-tag="sleep">Sleep</button>
+          <button type="button" class="chip" aria-pressed="false" data-tag="workload">Workload</button>
+          <button type="button" class="chip" aria-pressed="false" data-tag="other">Something else</button>
+        </div>
+
+        <button type="button" class="btn btn-primary push-bottom" id="continueBtn" disabled>Continue</button>
+        <button type="button" class="btn btn-secondary" id="skipBtn">Skip</button>
+      </div>
+    </section>
+
+    <!-- 4. Thank-you -->
+    <section class="screen" id="screen-thanks" aria-labelledby="thanks-title">
+      <div class="stack stack-center">
+        <div class="thanks-icon" id="thanksIcon" aria-hidden="true"></div>
+        <h1 class="screen-title" id="thanks-title" tabindex="-1">Thanks for checking in</h1>
+        <p class="thanks-mood" id="thanksMood"></p>
+
+        <div class="message-card">
+          <p id="thanksMessage"></p>
+          <p class="thanks-tags" id="thanksTags" hidden></p>
+        </div>
+
+        <div class="support-card" id="supportCard" hidden>
+          <h2>Want to talk to someone?</h2>
+          <p class="support-sub">Reaching out is a sign of strength. Any of these can help:</p>
+          <ul class="support-list">
+            <li>
+              <a class="support-link" href="mailto:counselor@yourschool.example">
+                <span class="support-ico">
+                  <svg viewBox="0 0 48 48" fill="none" stroke="#4F46E5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <rect x="6" y="8" width="36" height="26" rx="9"/>
+                    <path d="M18 34l-4 9 10-9"/>
+                  </svg>
+                </span>
+                <span>
+                  <strong>School counselor</strong>
+                  <small>Visit the counseling office or send an email. <span class="ph-badge">placeholder</span></small>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="support-link" href="#trusted-adult">
+                <span class="support-ico">
+                  <svg viewBox="0 0 48 48" fill="none" stroke="#4F46E5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M24 41s-15-9-15-20a8.5 8.5 0 0 1 15-5 8.5 8.5 0 0 1 15 5c0 11-15 20-15 20z"/>
+                  </svg>
+                </span>
+                <span>
+                  <strong>A trusted adult</strong>
+                  <small>Someone at home, school, or in your community you feel safe with. <span class="ph-badge">placeholder</span></small>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="support-link" href="#helpline">
+                <span class="support-ico">
+                  <svg viewBox="0 0 48 48" fill="none" stroke="#4F46E5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <rect x="13" y="5" width="22" height="38" rx="6"/>
+                    <line x1="20" y1="37" x2="28" y2="37"/>
+                  </svg>
+                </span>
+                <span>
+                  <strong>Local helpline</strong>
+                  <small>Free and confidential &mdash; add your local helpline number here. <span class="ph-badge">placeholder</span></small>
+                </span>
+              </a>
+            </li>
+          </ul>
+          <p class="support-note">MoodWeather never gives medical advice. In an emergency, contact your local emergency number.</p>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="doneBtn">Done</button>
+        <p class="center">
+          <button type="button" class="link-quiet" id="privacyLink2">How your privacy is protected</button>
+        </p>
+      </div>
+    </section>
+
+    <!-- 5. Privacy -->
+    <section class="screen" id="screen-privacy" aria-labelledby="privacy-title">
+      <div class="stack">
+        <h1 class="screen-title" id="privacy-title" tabindex="-1">Your privacy, in plain words</h1>
+
+        <ul class="privacy-list">
+          <li class="privacy-item">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <circle cx="24" cy="17" r="8"/>
+              <path d="M8 41c2.5-9 8.5-13 16-13s13.5 4 16 13"/>
+            </svg>
+            <div>
+              <strong>No names</strong>
+              <p>We never ask who you are. There's nothing to type and nothing that links back to you.</p>
+            </div>
+          </li>
+          <li class="privacy-item">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <circle cx="24" cy="24" r="16"/>
+              <line x1="13" y1="35" x2="35" y2="13"/>
+            </svg>
+            <div>
+              <strong>No accounts</strong>
+              <p>No sign-up, no login, no profile. You can't be tracked between check-ins.</p>
+            </div>
+          </li>
+          <li class="privacy-item">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <rect x="9" y="26" width="8" height="14" rx="2"/>
+              <rect x="20" y="18" width="8" height="22" rx="2"/>
+              <rect x="31" y="10" width="8" height="30" rx="2"/>
+            </svg>
+            <div>
+              <strong>Group patterns only</strong>
+              <p>Your check-in is combined with everyone else's, so the school sees trends &mdash; like &ldquo;Cloudy was common this week&rdquo; &mdash; never individual people.</p>
+            </div>
+          </li>
+          <li class="privacy-item">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <rect x="11" y="21" width="26" height="19" rx="5"/>
+              <path d="M16 21v-5a8 8 0 0 1 16 0v5"/>
+              <circle cx="24" cy="30" r="2.5" fill="#4F7DF9"/>
+            </svg>
+            <div>
+              <strong>Small groups stay hidden</strong>
+              <p>If fewer than 5 students share a group, its results are hidden so no one can be picked out.</p>
+            </div>
+          </li>
+          <li class="privacy-item">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M24 41s-15-9-15-20a8.5 8.5 0 0 1 15-5 8.5 8.5 0 0 1 15 5c0 11-15 20-15 20z"/>
+            </svg>
+            <div>
+              <strong>No diagnoses</strong>
+              <p>MoodWeather never labels anyone and never gives medical advice.</p>
+            </div>
+          </li>
+        </ul>
+
+        <p class="privacy-note">Your once-a-day limit is remembered only on this device, in your browser.</p>
+        <button type="button" class="btn btn-secondary" id="privacyBack">Back</button>
+      </div>
+    </section>
+
+    <!-- 6. How it works -->
+    <section class="screen" id="screen-how" aria-labelledby="how-title">
+      <div class="stack">
+        <h1 class="screen-title" id="how-title" tabindex="-1">How it works</h1>
+        <p class="screen-sub">Four steps, and your mood never travels with your name.</p>
+
+        <div class="how-diagram">
+          <div class="how-step">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <rect x="6" y="6" width="36" height="36" rx="10"/>
+              <circle cx="24" cy="24" r="8" fill="#FBBF24" stroke="#F59E0B"/>
+            </svg>
+            <div>
+              <strong>1. You tap a mood</strong>
+              <p>One weather icon on your phone. No name, no account, no email.</p>
+            </div>
+          </div>
+
+          <svg class="how-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <polyline points="6,4 12,10 6,16"/><line x1="12" y1="10" x2="20" y2="10"/>
+          </svg>
+
+          <div class="how-step">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <polyline points="9,25 20,36 39,14"/>
+            </svg>
+            <div>
+              <strong>2. A counter goes up by one</strong>
+              <p>Your tap adds exactly 1 to a group total. Nothing else is stored about you.</p>
+            </div>
+          </div>
+
+          <svg class="how-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <polyline points="6,4 12,10 6,16"/><line x1="12" y1="10" x2="20" y2="10"/>
+          </svg>
+
+          <div class="how-step">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <rect x="11" y="21" width="26" height="19" rx="5"/>
+              <path d="M16 21v-5a8 8 0 0 1 16 0v5"/>
+              <circle cx="24" cy="30" r="2.5" fill="#4F7DF9"/>
+            </svg>
+            <div>
+              <strong>3. Summaries are protected</strong>
+              <p>Only group totals are saved. Groups under 5 students are hidden automatically.</p>
+            </div>
+          </div>
+
+          <svg class="how-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <polyline points="6,4 12,10 6,16"/><line x1="12" y1="10" x2="20" y2="10"/>
+          </svg>
+
+          <div class="how-step">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <rect x="9" y="26" width="8" height="14" rx="2"/>
+              <rect x="20" y="18" width="8" height="22" rx="2"/>
+              <rect x="31" y="10" width="8" height="30" rx="2"/>
+            </svg>
+            <div>
+              <strong>4. Staff see the weather map</strong>
+              <p>Teachers and counselors see patterns for the whole grade &mdash; never you.</p>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary" id="howBack">Back</button>
+      </div>
+    </section>
+
+    <!-- 7. Once-a-day limit -->
+    <section class="screen" id="screen-limit" aria-labelledby="limit-title">
+      <div class="stack stack-center">
+        <div class="limit-icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#4F7DF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+            <rect x="7" y="10" width="34" height="32" rx="6"/>
+            <line x1="7" y1="20" x2="41" y2="20"/>
+            <line x1="16" y1="5" x2="16" y2="12"/>
+            <line x1="32" y1="5" x2="32" y2="12"/>
+            <circle cx="24" cy="31" r="6" fill="#FBBF24" stroke="#F59E0B"/>
+          </svg>
+        </div>
+        <h1 class="screen-title" id="limit-title" tabindex="-1">See you tomorrow</h1>
+        <p class="screen-sub">You've checked in today. See you tomorrow!</p>
+        <p class="screen-sub">Until then, be kind to yourself.</p>
+        <button type="button" class="btn btn-primary" id="homeBtn">Back to home</button>
+        <p class="center">
+          <button type="button" class="link-quiet" id="privacyLink3">How your privacy is protected</button>
+        </p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<noscript>
+  <p class="noscript-note">MoodWeather needs JavaScript enabled to run.</p>
+</noscript>
+
+<div class="boot-error" id="bootError" hidden>
+  <p><strong>MoodWeather needs a web server.</strong></p>
+  <p>ES modules cannot load from <code>file://</code>. Serve this folder over HTTP &mdash; for example <code>python -m http.server</code> or <code>npx serve</code> &mdash; or use VS Code's Live Server extension, then open the page.</p>
+</div>
+
+<script>
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      if (!window.__moodweatherBooted) {
+        var el = document.getElementById('bootError');
+        if (el) el.hidden = false;
+      }
+    }, 2000);
+  });
+</script>
+
+<script type="module" src="js/student.js"></script>
+</body>
+</html>
